@@ -1,0 +1,2 @@
+# kaardid2024
+Kvalitaadid digihumanitaaria harjutuslehestik
