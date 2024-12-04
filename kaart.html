@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>World Capitals Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.css" />
+    <style>
+      body {padding: 0; margin: 0;}
+      html, body {height: 100%; width: 100%;}
+      #kaardikiht {width: 100%; height: 80%;}
+      .button-container {margin: 10px;}
+      #vastus {margin: 10px;}
+    </style>
+    <script>
+      var map, markerLayer, capitals = {};
+      var homeCoordinates = L.latLng(59.319692, 24.518722);  // Fixed home coordinates
+
+      // Load the custom green marker icon from the local directory
+      var greenIcon = L.icon({
+        iconUrl: 'green-marker.png',  // Update this to the actual path of the uploaded marker
+        iconSize: [50, 41],  // This is the default size of the standard blue marker
+        iconAnchor: [12, 41],  // Point where the marker will be anchored (bottom point)
+        popupAnchor: [1, -34],  // Point from which the popup will open relative to the iconAnchor
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/images/marker-shadow.png',  // Standard shadow
+        shadowSize: [60, 41]  // Shadow size similar to the default marker shadow
+      });
+
+      // Function to load the CSV file and parse it using PapaParse
+      // https://gist.github.com/ofou/df09a6834a8421b4f376c875194915c9#file-country-capital-lat-long-population-csv
+      function loadCSV() {
+        Papa.parse('country-capital-lat-long-population.csv', {
+          download: true,
+          header: true,
+          complete: function(results) {
+            parseCSV(results.data);
+            addMarkers();
+          }
+        });
+      }
+
+      // Function to parse the CSV data and store it in the 'capitals' object
+      function parseCSV(data) {
+        data.forEach(row => {
+          if (row['Latitude'] && row['Longitude']) {
+            let country = row['Country'].trim();
+            let city = row['Capital City'].trim();
+            let lat = parseFloat(row['Latitude']);
+            let lng = parseFloat(row['Longitude']);
+            let population = parseInt(row['Population'].trim());
+
+            // Store the capital in the desired format
+            capitals[`${city} (${country})`] = {
+              latLng: L.latLng(lat, lng),
+              population: population
+            };
+          }
+        });
+      }
+
+      // Function to initialize the world map
+      function initMap() {
+        map = L.map('kaardikiht').setView([59.319692, 24.518722], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add the green home marker
+        marker_home = L.marker([59.319692, 24.518722], { icon: greenIcon, draggable: true }).addTo(map);
+        marker_home.on("move", liigub);
+
+        markerLayer = L.layerGroup().addTo(map);
+      }
+
+      // Function to add markers to the map
+      function addMarkers() {
+        for (let city in capitals) {
+          let marker = L.marker(capitals[city].latLng);
+          marker.bindPopup(`${city}: ${capitals[city].population} citizens`);
+          markerLayer.addLayer(marker);
+        }
+      }
+
+      // Function to calculate distances and update the display
+      function liigub() {
+        let distances = [];
+        let megacityDistances = [];
+        let homeDistance = homeCoordinates.distanceTo(marker_home.getLatLng()) / 1000;  // Convert to km
+
+        // Loop through capitals and calculate distances
+        for (let city in capitals) {
+          let distance = capitals[city].latLng.distanceTo(marker_home.getLatLng());
+          distances.push([distance, city]);
+
+          // Check for megacity (population > 10 million)
+          if (capitals[city].population > 10000000) {
+            megacityDistances.push([distance, city]);
+          }
+        }
+
+        // Sort the distances (ascending order)
+        distances.sort((a, b) => a[0] - b[0]);
+        megacityDistances.sort((a, b) => a[0] - b[0]);
+
+        // Display the nearest city, megacity, and distance to home
+        let vastusElement = document.getElementById('vastus');
+        vastusElement.innerHTML = `Shortest: ${distances[0][1]}, ${Math.round(distances[0][0] / 1000)} km<br>`;
+        if (megacityDistances.length > 0) {
+        let megacityName = megacityDistances[0][1];
+        let megacityPopulation = (capitals[megacityName].population / 1000000).toFixed(1);  // Convert population to millions and round to 1 decimal
+        vastusElement.innerHTML += `Shortest megacity: ${megacityName}, ${Math.round(megacityDistances[0][0] / 1000)} km, population: ${megacityPopulation} million<br>`;
+        } else {
+        vastusElement.innerHTML += `No megacities nearby.<br>`;
+        }
+        vastusElement.innerHTML += `To home: ${Math.round(homeDistance)} km`;
+      }
+
+      // Load the map and CSV file on window load
+      window.onload = function() {
+        initMap();
+        loadCSV();
+      };
+    </script>
+</head>
+<body>
+    <div id="kaardikiht"></div>
+    <div id="vastus">Distance information will be shown here</div>
+</body>
+</html>
