@@ -1,2 +1,2 @@
 # kaardid2024
-Kvalitaadid digihumanitaaria harjutuslehestik
+Kvalitatiivse digihumanitaaria harjutuslehestik
