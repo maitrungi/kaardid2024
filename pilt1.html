@@ -36,7 +36,6 @@
 
     <script>
         function addComment() {
-            // Võta tekst kommentaariväljast
             const commentText = document.getElementById('comment').value.trim();
 
             if (commentText) {
@@ -47,11 +46,28 @@
                 // Lisa kommentaar listi
                 document.getElementById('comments-list').appendChild(newComment);
 
+                // Saada kommentaar Apps Script'i
+                sendToAppsScript(commentText);
+
                 // Tühjenda kommentaariväli
                 document.getElementById('comment').value = '';
             } else {
                 alert("Palun sisesta kommentaar.");
             }
+        }
+
+        function sendToAppsScript(comment) {
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbywuUBmvjp2PSNKFJ5C-U027w65pdi1X5hsw-s24eTX6CXkFswvjVZyPzfOZwhzJxR0Vw/exec?hinnang=" + encodeURIComponent(comment);
+
+            fetch(scriptUrl)
+                .then(response => {
+                    if (response.ok) {
+                        console.log("Kommentaar saadeti edukalt Apps Script'i.");
+                    } else {
+                        console.error("Kommentaari saatmine ebaõnnestus.");
+                    }
+                })
+                .catch(error => console.error("Viga kommentaari saatmisel:", error));
         }
     </script>
 </body>
