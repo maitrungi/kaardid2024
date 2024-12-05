@@ -10,6 +10,9 @@
             display: inline-block;
             padding: 10px;
         }
+        .comment-section {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -17,5 +20,39 @@
     <div class="image-container">
         <img src="P1T1-1.jpg" alt="P1T1-1" width="500">
     </div>
+
+    <div class="comment-section">
+        <label for="comment">Sisesta kommentaar:</label><br>
+        <textarea id="comment" rows="3" cols="50" placeholder="Kirjuta oma kommentaar siia..."></textarea><br><br>
+        <button onclick="addComment()">OK</button>
+
+        <div id="comments-container">
+            <h3>Kommentaarid:</h3>
+            <ul id="comments-list">
+                <!-- Siia tulevad kommentaarid -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function addComment() {
+            // Võta tekst kommentaariväljast
+            const commentText = document.getElementById('comment').value.trim();
+
+            if (commentText) {
+                // Loo uus listi element kommentaariks
+                const newComment = document.createElement('li');
+                newComment.textContent = commentText;
+
+                // Lisa kommentaar listi
+                document.getElementById('comments-list').appendChild(newComment);
+
+                // Tühjenda kommentaariväli
+                document.getElementById('comment').value = '';
+            } else {
+                alert("Palun sisesta kommentaar.");
+            }
+        }
+    </script>
 </body>
 </html>
